@@ -16,8 +16,18 @@ const BreandSchema = new Schema({
     subCatagoryId: { type: Schema.Types.ObjectId, ref: 'SubCategory', required: true }, // superAdmin
 },{
     timestamps: true,
-    
+    toJSON: {virtuals: true},    
+    ObjectId: {virtuals: true},    
 })
 // check for the model
+
+BreandSchema.virtual("Products", {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'brandId'
+})
+
+
+
 
 export default mongoose.models.Brand || model("Brand", BreandSchema)

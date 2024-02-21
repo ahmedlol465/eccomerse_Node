@@ -36,5 +36,9 @@ router.get('/getAllCategory',auth(endPointsRoles.ADD_CATAGORY) ,expressAsynchand
 
 router.delete('/deleteCategory/:catagoryId',auth(endPointsRoles.ADD_CATAGORY) ,expressAsynchandler(catagorycontroller.deleteCategory))
 
+
+
+router.get('/getAllSchemas',expressAsynchandler(catagorycontroller.getAllCategoryWithSubCategoriesWithBrandaWithProducts))
+
 // Exporting the router for use in the main application
 export default router;

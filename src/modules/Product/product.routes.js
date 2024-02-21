@@ -26,5 +26,23 @@ router.put("/updateProduct/:productId",
         extensions: allowedExetintion.image
     }).single("image"),
 expressAsynchandler(productController.UpdatePRoduct))
+
+
+
+router.get('/getAllProductByFilter', expressAsynchandler(productController.getAllProductByFilter))
+
+router.get('/getAllProductBySearch', expressAsynchandler(productController.getAllProductBySearch))
+
+router.get('/getAllProductByPagination', expressAsynchandler(productController.getAllProductByPagination))
+
+router.delete('/deleteProduct/:productId',auth(endPointsRoles.ADD_PRODUCT), expressAsynchandler(productController.deleteProdcut))
+
+router.get('/getProduct/:productId',auth(endPointsRoles.ADD_PRODUCT), expressAsynchandler(productController.getProductById))
+
+
+router.get('/get/:BrandIdOne/:BrandIdTwo',auth(endPointsRoles.ADD_PRODUCT), expressAsynchandler(productController.getAllProductsFor2Brnds))
+
+
+
 // Exporting the router for use in the main application
 export default router;

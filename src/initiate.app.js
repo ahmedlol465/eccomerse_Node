@@ -23,6 +23,7 @@ export const initiateApp = (app, express) => {
   app.use("/subCategory", routers.subCategoryRouter);
   app.use("/Brand", routers.brandRouter);
   app.use("/product", routers.productRouter);
+  app.use("/cart", routers.cartRouter);
 
   
   // Adding global response middleware

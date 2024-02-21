@@ -142,6 +142,7 @@ export const deletebrand = async(req,res,next) => {
     .status(200)
     .json({ message: "brand deleted succefully", success: true });
 
+    
 };
 
 

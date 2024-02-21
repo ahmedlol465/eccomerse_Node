@@ -152,3 +152,28 @@ export const deleteCategory = async (req, res, next) => {
     .status(200)
     .json({ message: "category deleted succefully", success: true });
 };
+
+
+
+
+// ===================  get All Category and SubCategory and Brands  ================
+export const getAllCategoryWithSubCategoriesWithBrandaWithProducts = async(req,res,next) => {
+    const getingAllOfThem = await Catagory.find().populate([
+      {
+        path: "subCategory",
+        populate: [
+          {
+            path: "Brands",
+            populate: [
+              {
+                path: "Products",
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    if(!getingAllOfThem) return next({message: 'error getting the data', cause: 404})
+    res.status(200).json({message: 'all data', data: getingAllOfThem})
+}

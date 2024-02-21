@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 
 
 
@@ -26,4 +26,4 @@ catagorySchema.virtual("subCategory", {
 });
 
 
-export default model("Catagory", catagorySchema)
+export default  mongoose.models.Catagory || model("Catagory", catagorySchema)

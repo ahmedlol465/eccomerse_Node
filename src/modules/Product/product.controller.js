@@ -4,6 +4,7 @@ import slugify from "slugify"
 import { systemRoles } from "../../uitils/system.role.js"
 import cloudnaryConnection from "../../uitils/cloudnary.js"
 import generateUniqueString from "../../uitils/generateUniqeString.js"
+import { APIFeatures } from "../../uitils/api-features.js"
 
 export const addProduct = async (req, res, next) => {
     const { title, desc, stock, basePrice, discount, spaces } = req.body
@@ -59,7 +60,6 @@ console.log(folderId);
         brandId ,
         categoryId,
         images,
-        folderId,
     }
 
     const addproduct = await Product.create(product);
@@ -134,3 +134,142 @@ export const UpdatePRoduct = async(req,res,next) => {
 
 
 
+
+// ================  get all product =================
+export const getAllProductBySearch = async(req,res,next) => {
+    const { page, size, sort, ...query } = req.query   // rest operator not spread its for collecting data
+    // const features = new APIFeatures(req.query, Product.find()).pagination({page, size})
+    // const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+// console.log(query);
+
+    // const features = new APIFeatures(req.query, Product.find()).sort(sort)
+
+    const features = new APIFeatures(req.query, Product.find()).search(query)
+
+
+    // const features = new APIFeatures(req.query , Product.find()).filter(query) // req.query = for filters
+    const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+
+// if(sort){
+//     const formula = sort.replace(/desc/g, -1).replace(/asc/g, 1).replace(/ /g, ':')
+//     console.log(formula);
+//     const [key, value] = formula.split(':')
+
+//     const totalDocs = await Product.find().sort({ [key]: +value})
+// }
+
+
+    res.status(200).json({message: "the product", data: Products})
+}
+
+
+// ================  get all product =================
+export const getAllProductByPagination = async(req,res,next) => {
+    const { page, size, sort, ...query } = req.query   // rest operator not spread its for collecting data
+    const features = new APIFeatures(req.query, Product.find()).pagination({page, size})
+    const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+// console.log(query);
+
+    // const features = new APIFeatures(req.query, Product.find()).sort(sort)
+
+    // const features = new APIFeatures(req.query, Product.find()).search(query)
+
+
+    // const features = new APIFeatures(req.query , Product.find()).filter(query) // req.query = for filters
+    // const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+
+// if(sort){
+//     const formula = sort.replace(/desc/g, -1).replace(/asc/g, 1).replace(/ /g, ':')
+//     console.log(formula);
+//     const [key, value] = formula.split(':')
+
+//     const totalDocs = await Product.find().sort({ [key]: +value})
+// }
+
+
+    res.status(200).json({message: "the product", data: Products})
+}
+
+
+
+
+// ================  get all product =================
+export const getAllProductByFilter = async(req,res,next) => {
+    const { page, size, sort, ...query } = req.query   // rest operator not spread its for collecting data
+    // const features = new APIFeatures(req.query, Product.find()).pagination({page, size})
+    // const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+// console.log(query);
+
+    // const features = new APIFeatures(req.query, Product.find()).sort(sort)
+
+    // const features = new APIFeatures(req.query, Product.find()).search(query)
+
+
+    const features = new APIFeatures(req.query , Product.find()).filter(query) // req.query = for filters
+    const Products = await features.mongooseQuery  // mongoose query only need to await line of data base
+
+// if(sort){
+//     const formula = sort.replace(/desc/g, -1).replace(/asc/g, 1).replace(/ /g, ':')
+//     console.log(formula);
+//     const [key, value] = formula.split(':')
+
+//     const totalDocs = await Product.find().sort({ [key]: +value})
+// }
+
+
+    res.status(200).json({message: "the product", data: Products})
+}
+
+
+
+
+// =====================  delete product ===========================
+export const deleteProdcut = async(req,res,next) => {
+    const{ productId } = req.params
+    const{ _id } = req.authUser
+
+    const deletingProduct = await Product.findByIdAndDelete({_id: productId, addedBy: _id})
+    if (!deletingProduct) return next({ message: "product not deleted " });
+
+    const folderPath = deletingProduct.images[0].public_id.split(`${deletingProduct.folderId}`)[0]
+
+        await cloudnaryConnection().api.delete_resources_by_prefix(
+            `${folderPath}${deletingProduct.folderId}`
+);
+        await cloudnaryConnection().api.delete_folder(
+        `${folderPath}${deletingProduct.folderId}`
+
+);
+
+    res
+        .status(200)
+        .json({ message: "product deleted succefully", success: true });
+
+}
+
+
+
+// ==================  get product by id ===============
+export const getProductById = async(req,res,next) => {
+    const { productId } = req.params
+    const { _id } = req.authUser
+    
+    const getingProduct = await Product.findById({_id: productId, addedBy: _id})
+    if(!getingProduct) return next({message: 'geting product is faild'})
+    return res.status(200).json({message: 'the products', data: getingProduct})
+}
+
+
+
+// ==================  get product by id ===============
+export const getAllProductsFor2Brnds = async(req,res,next) => {
+    const { BrandIdOne, BrandIdTwo } = req.params;
+    console.log(BrandIdOne);
+    console.log(BrandIdTwo);
+    const brands = [ BrandIdOne, BrandIdTwo]
+    console.log(brands);
+    const getingProduct = await Product.find({ brandId : { $in: brands }});
+    console.log(getingProduct);
+    if(!getingProduct) return next({message: 'geting product is faild'})
+    return res.status(200).json({message: 'the products', data: getingProduct})
+}
