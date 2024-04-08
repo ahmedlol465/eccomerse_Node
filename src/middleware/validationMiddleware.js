@@ -27,7 +27,6 @@ export const validmiddleware = (schema) => {
         errors: validationErrorsArr.map((ele) => ele.message),
         });
     }
-
     // If no validation errors, proceed to the next middleware
     next();
     };

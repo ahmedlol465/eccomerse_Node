@@ -1,9 +1,11 @@
-import Catagory from "../../../DB/moduls/catagory.model.js";
+import Catagory from "../../../DB/models/catagory.model.js";
 import slugify from "slugify";
 import cloudnaryConnection from "../../uitils/cloudnary.js";
 import generateUniqueString from "../../uitils/generateUniqeString.js";
-import subCategory from "../../../DB/moduls/sub-category.model.js";
-import Brand from "../../../DB/moduls/brand.model.js";
+import subCategory from "../../../DB/models/sub-category.model.js";
+import Brand from "../../../DB/models/brand.model.js";
+import { APIFeatures } from "../../uitils/api-features.js";
+
 
 // ============  add category ========
 export const addCatogary = async (req, res, next) => {
@@ -15,22 +17,25 @@ export const addCatogary = async (req, res, next) => {
   if (isNameDublicate) {
     return next(new Error("catagory name is already exist", { cause: 409 }));
   }
-
   //3- generate slug
   const slug = slugify(name, "-");
 
   // 4- handel image
   if (!req.file) return next({ cause: 400, message: "image is required" });
 
+  
   const folderId = generateUniqueString(4);
   const { secure_url, public_id } = await cloudnaryConnection().uploader.upload(
     req.file.path,
     {
-      folder: `${process.env.MAIN_FOLDER}/categories/${generateUniqueString(
-        4
-      )}`,
+      folder: `${process.env.MAIN_FOLDER}/categories/${folderId}`,
     }
   );
+
+  console.log(`${process.env.MAIN_FOLDER}/categories/${folderId}`);
+  req.folder = `${process.env.MAIN_FOLDER}/categories/${folderId}`;
+
+
 
   // 5- create the catagory object
   const catagory = {
@@ -42,6 +47,10 @@ export const addCatogary = async (req, res, next) => {
   };
 
   const createCatagory = await Catagory.create(catagory);
+
+  req.savedDocument = { model: Catagory, _id:createCatagory._id}
+
+
   res.status(201).json({
     success: true,
     message: "catagory created succeffuly",
@@ -143,3 +152,90 @@ export const deleteCategory = async (req, res, next) => {
     .status(200)
     .json({ message: "category deleted succefully", success: true });
 };
+
+
+
+
+// ===================  get All Category and SubCategory and Brands  ================
+export const getAllCategoryWithSubCategoriesWithBrandaWithProducts = async(req,res,next) => {
+    const getingAllOfThem = await Catagory.find().populate([
+      {
+        path: "subCategory",
+        populate: [
+          {
+            path: "Brands",
+            populate: [
+              {
+                path: "Products",
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    if(!getingAllOfThem) return next({message: 'error getting the data', cause: 404})
+    res.status(200).json({message: 'all data', data: getingAllOfThem})
+}
+
+
+
+
+// ============  get all catagory ===========
+export const getByIdCatagory = async (req, res, next) => {
+  const { CategoryId } = req.params
+  const catagories = await Catagory.findById({_id: CategoryId})
+  
+  if (!catagories)
+    return next(new Error("Error getting categories", { cause: 404 }));
+  res.status(200).json({ message: "catagory getting successfuly", catagories });
+};
+
+
+
+
+
+// ================  get all category =================
+export const getAllCategoryBySearch = async(req,res,next) => {
+  const { page, size, sort, ...query } = req.query  
+
+  const features = new APIFeatures(req.query, Catagory.find()).search(query)
+
+
+  const Products = await features.mongooseQuery  
+
+
+
+  res.status(200).json({message: "the product", data: Products})
+}
+
+
+// ================  get all category =================
+export const getAllCategoryByPagination = async(req,res,next) => {
+  const { page, size, sort, ...query } = req.query  
+
+  const features = new APIFeatures(req.query, Catagory.find()).pagination({page, size})
+
+  const Products = await features.mongooseQuery  
+
+
+  res.status(200).json({message: "the product", data: Products})
+}
+
+
+
+
+// ================  get all category =================
+export const getAllCategoryByFilter = async(req,res,next) => {
+  const { page, size, sort, ...query } = req.query  
+
+  const features = new APIFeatures(req.query , Catagory.find()).filter(query) 
+
+
+  res.status(200).json({message: "the product", data: Products})
+}
+
+
+
+
+

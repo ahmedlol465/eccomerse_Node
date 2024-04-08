@@ -3,8 +3,8 @@ import { Router } from "express";
 import * as catagorycontroller from "./catagory.controller.js";
 import expressAsynchandler from "express-async-handler";
 import { auth } from "../../middleware/auth.middleware.js";
-// import { validmiddleware } from "../../middleware/validationMiddleware.js";
-// import { siginUpSchema } from "./user.validationSchema.js";
+import { validmiddleware } from "../../middleware/validationMiddleware.js";
+import { brandValidationSchema } from "./category-validationSchema.js";
 import { endPointsRoles } from "./catagory.endpoints.js";
 import { multermiddleHost } from '../../middleware/multer.js'
 import { allowedExetintion } from "../../uitils/allowedExtentions.js";
@@ -35,6 +35,24 @@ router.get('/getAllCategory',auth(endPointsRoles.ADD_CATAGORY) ,expressAsynchand
 
 
 router.delete('/deleteCategory/:catagoryId',auth(endPointsRoles.ADD_CATAGORY) ,expressAsynchandler(catagorycontroller.deleteCategory))
+
+
+
+router.get('/getAllSchemas',expressAsynchandler(catagorycontroller.getAllCategoryWithSubCategoriesWithBrandaWithProducts))
+
+
+router.post('/getCategoryById/:CategoryId',expressAsynchandler(catagorycontroller.getByIdCatagory))
+
+
+
+
+router.get('/getAllCategoryByPagination', expressAsynchandler(catagorycontroller.getAllCategoryByPagination))
+
+router.get('/getAllCategoryByFilter', expressAsynchandler(catagorycontroller.getAllCategoryByFilter))
+
+router.get('/getAllCategoryBySearch', expressAsynchandler(catagorycontroller.getAllCategoryBySearch))
+
+
 
 // Exporting the router for use in the main application
 export default router;

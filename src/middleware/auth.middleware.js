@@ -1,6 +1,6 @@
 // Importing necessary modules
 import jwt from "jsonwebtoken";
-import User from "../../DB/moduls/user.model.js";
+import User from "../../DB/models/user.model.js";
 
 // Middleware function for authentication and authorization
 export const auth = (accesRoles) => {
@@ -22,9 +22,10 @@ export const auth = (accesRoles) => {
       // Extracting token without the prefix
         const token = accesstoken.split(process.env.TOKEN_PREFIX)[1];
 
+        // console.log(token)
       // Verifying the decoded token
         const decoded = jwt.verify(token, process.env.JWT_SECRET_LOGIN);
-
+// console.log(decoded);
       // Handling invalid or missing user ID in the decoded token
         if (!decoded || !decoded.id) {
         return next(new Error("Please sign up first", { cause: 404 }));
@@ -33,7 +34,7 @@ export const auth = (accesRoles) => {
       // Retrieving user information from the database
         const findUser = await User.findById(
         decoded.id,
-        "email username password role"
+        "email username role"
         );
 
       // Handling missing user in the database
@@ -53,7 +54,26 @@ export const auth = (accesRoles) => {
     } catch (error) {
       // Handling errors and passing to the error handler
         console.error("Error in auth middleware:", error);
-        return next(new Error("Error in auth middleware", { cause: 500 }, error));
+        if(error == 'TokenExpiredError: jwt expired') {
+
+          const { accesstoken } = req.headers;
+
+          const token = accesstoken.split(process.env.TOKEN_PREFIX)[1];
+
+          
+          const findUser = await User.findOne({token})
+          if(!findUser) return next(new Error("wrong token", { cause: 404 }));
+          
+          const userToken = jwt.sign({id: findUser._id, isloggedIn: true}, process.env.JWT_SECRET_VERIFICATION, { expiresIn: '1d' })
+
+          findUser.token = userToken
+          await findUser.save()
+          res.status(200).json({message: 'refreshed Token', userToken})
+
+
+        }
+
+          return next(new Error("Error in auth middleware", { cause: 500 }, error));
     }
 };
 };
